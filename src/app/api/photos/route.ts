@@ -3,6 +3,12 @@ import { supabaseAdmin } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 Photos API called')
+    console.log('Environment check:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '***' : 'MISSING',
+    })
+
     const { searchParams } = new URL(request.url)
     const tag = searchParams.get('tag')
 
@@ -19,13 +25,15 @@ export async function GET(request: NextRequest) {
     const { data: photos, error } = await query
 
     if (error) {
-      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+      console.error('❌ Database error:', error)
+      return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 })
     }
 
-    return NextResponse.json({ photos })
+    console.log(`✅ Found ${photos?.length || 0} photos`)
+    return NextResponse.json({ photos: photos || [] })
   } catch (error) {
-    console.error('Photos API error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('❌ Photos API error:', error)
+    return NextResponse.json({ error: `Internal server error: ${String(error)}` }, { status: 500 })
   }
 }
 
